@@ -59,3 +59,27 @@ vault/
 - 四垂直区：最新高时效官方信息 / 官方来源信息 / 个人 SWOT / Claudian+Grill 高分问答沉淀。
 - Claudian 与 grill-me 的回复沉淀进 `wiki/questions/`，frontmatter 带 `prompt_type`/`preset_slug`/`score`/`asked_at`/`answered_by`；面板只展示 `score≥4`。
 - 预设提示词清单放 `wiki/meta/preset-prompts.md`。
+
+## dashboard 字段对齐（grill 共识 2026-07-22）
+
+`wiki/meta/dashboard.md` 四区 dataview 依赖以下 frontmatter 顶层字段（命名一字不差）：
+
+- `type: source` 顶层加 `evidence_tier`（official|community）、`valid_until`、`account_or_school`
+- `type: entity` / `type: concept` 顶层加 `时效标签`（current|historical|stale-suspect）、`evidence_tier`、`valid_until`、`account_or_school`
+- `type: question` 顶层有 `prompt`、`prompt_type`、`score`、`asked_at`、`answered_by`
+- `type: strategy` 模板见 `_templates/strategy.md`，装申请策略/时间线/材料清单/风险预案
+- `wiki/profile/` 下用户本人 entity 衍生页带 `优势/劣势/机会/威胁` 四字段供 SWOT 区
+
+## 初始化与三件物（grill 共识 2026-07-22）
+
+- **`/init` 技能**：clone release 后首次运行，顺序：环境依赖检查 → 填 `config.yaml`（含问清所有监视网站）→ 生成骨架 → 投第一份简历触发首次 ingest → 引导 `/grill-me-study`。
+- **`_templates/strategy.md`** 已建（strategy 类型，官方无、自补）。
+- **`wiki/meta/dashboard.md`** 已建（四区 dataview 面板，Claudian 不嵌入）。
+
+## 开发/使用/Release 三轨与文化（grill 共识 2026-07-22）
+
+- 开发目录只产出模板与空骨架（无个人数据，不需排除个人数据）；使用者在外部克隆目录灌简历/跑 grill-me-study，该目录**只拉不推**，个人数据轨靠克隆目录 `.gitignore` 隔离。
+- release = 开发目录打包 = 工具轨（剔除 `_dev/`）+ 空骨架 + 公共资产，**不含个人数据**。
+- `wiki/` 骨架含通用保研术语种子概念页；院校/个人/规则特定内容由用户 ingest 补。
+- 预装 `/claude-md-management:revise-claude-md` 与 `/skill-creator:skill-creator` 陪同 CLAUDE.md 与新 skill 的演进。
+- **初始化 skill** 引导用户 clone 后初始化；**README.md** 在项目根说明初始化入口与使用方式。
