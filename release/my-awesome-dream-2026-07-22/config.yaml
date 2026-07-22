@@ -1,0 +1,41 @@
+# config.yaml — 保研 Harness 配置
+#
+# release 含此空模板；用户 clone 后由 /init 技能引导逐项填写。
+# 所有 skill/抓取器的产物一律写向 output.raw_dir（社区域铁律：只进 .raw/，禁写 wiki/）。
+
+user:
+  name: ""                      # 本地昵称，仅本地显示，不入 release（克隆目录填）
+  school: ""                    # 本科院校，决定本校推免规则去哪 ingest
+  is_sufe: false                # 是否上财学生，决定是否启用 sufe-cli 周级 hook
+
+# 目标院校官网（天级，Playwright 解析）—— 可监视多个院校，每个院校可配多个页面
+watched_pages:
+  - school: ""                  # 如 清华
+    college: ""                 # 如 经管学院
+    url: ""                     # 官网/招生页 URL
+    page_slug: ""               # 产物存 .raw/my-dream-school/{school}/{college}/{page_slug}/
+    frequency_days: 1           # 抓取间隔（天）
+
+# 公众号来源（wechat-article-search skill）
+wechat:
+  accounts: []                  # 如 ["某公众号名"]
+  keywords: []                  # 如 ["保研","夏令营"]
+  frequency_hours: 1
+
+# 社区技能关键词（小时级；zhihu / rednote / wechat 三 skill）
+community:
+  knowledge_keywords: []        # 如 ["保研","推免","夏令营"]
+  target_keywords: []           # 如 ["上财","复旦经济学院"]
+  frequency_hours: 1
+  # 可选入参槽位：填入后 hook 即可自动抓对应社区；留空则跳过并提示
+  zhihu_collection_url: ""      # 知乎收藏夹 URL 或 ID，如 https://www.zhihu.com/collection/31462407
+  rednote_user_id: ""           # 小红书用户 ID（用于 rednote report daily）
+
+# 产物去向（写死，用户不改 —— 社区域铁律）
+output:
+  raw_dir: ".raw"               # 所有 skill 产物只进此处
+
+# sufe-cli（上财学生周级）
+sufe:
+  enabled: false                # user.is_sufe=true 时由 /init 改为 true
+  frequency_weeks: 1
