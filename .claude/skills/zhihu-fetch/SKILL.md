@@ -5,9 +5,12 @@ version: "1.2.0"
 user-invocable: true
 argument-hint: "[可选：收藏夹 URL 或 ID、单篇链接、输出目录、Vault 路径]"
 allowed-tools: Read, Write, Edit, Grep, Glob, Bash, WebFetch
+env: "uv (.venv)"
 ---
 
 # 知乎数据抓取
+
+> **项目环境**：本项目使用仓库级 uv 虚拟环境（`.venv/`）。运行 Python 脚本时请使用 `.venv/Scripts/python` 或 `uv run python` 前缀。
 
 从知乎获取**收藏夹文章列表**与**正文 Markdown**（含图片本地化），支持写入 **Obsidian** 知识库。命令与路径约定见下文；可视化说明见仓库根目录 [`README.md`](README.md)。
 
@@ -18,7 +21,7 @@ allowed-tools: Read, Write, Edit, Grep, Glob, Bash, WebFetch
 - **语言**：默认与用户语种一致。
 - **技能根目录**：下文 `${CLAUDE_SKILL_DIR}` 表示本 skill 仓库根目录（部分宿主 UI 中写作 **`{baseDir}`**，含义相同）。脚本均在 **`scripts/`** 下。
 - **工作区目录**：脚本默认将 Cookie、浏览器用户数据、默认文章输出等放在 **`OPENCLAW_WORKSPACE`** 环境变量指定的目录；未设置时为 **`~/.openclaw/workspace/`**。
-- **依赖**：在 **`scripts/`** 下执行 **`pip install -r requirements.txt`**，并 **`playwright install chromium`**。
+- **依赖**：已在本项目 uv 环境（`.venv/`）中预装。运行脚本使用 `.venv/Scripts/python` 或 `uv run python`。
 
 ### 登录与可选页面验证
 
@@ -49,13 +52,13 @@ allowed-tools: Read, Write, Edit, Grep, Glob, Bash, WebFetch
 
 | 任务 | 建议方式 |
 |------|----------|
-| 获取收藏夹 JSON 列表 | **`Bash`** → `python "${CLAUDE_SKILL_DIR}/scripts/fetch_zhihu_collection.py" <收藏夹URL或ID>`；优先 API，失败降级 Playwright DOM |
-| 获取个人主页点赞/收藏历史 | **`Bash`** → `python "${CLAUDE_SKILL_DIR}/scripts/fetch_zhihu_history.py" <people URL 或 slug> <起始时间ISO> <输出.json> [--until <结束时间ISO>]`；按活动时间保留 `interaction_*` 元数据，支持断点续跑 |
-| 批量抓取正文与图片 | **`Bash`** → `python "${CLAUDE_SKILL_DIR}/scripts/fetch_zhihu_batch.py" <列表.json> [输出目录] [图片目录]`；默认输出目录见「路径约定」 |
-| 写入 Obsidian Vault | **`Bash`** → `python "${CLAUDE_SKILL_DIR}/scripts/write_to_obsidian.py" <文章目录> [Vault路径]`；Vault：命令行优先，否则环境变量 **`OBSIDIAN_VAULT`**；会先找 `<文章目录>/images`，否则兼容同级 **`zhihu_images`** |
-| 写入个人历史到 Obsidian | **`Bash`** → `python "${CLAUDE_SKILL_DIR}/scripts/write_zhihu_history_to_obsidian.py" <文章目录> <Vault路径> [.]`；默认写入 `{Vault}/知乎收藏/{分类}/`，按 URL 去重更新 |
-| 写入失败项清单 | **`Bash`** → `python "${CLAUDE_SKILL_DIR}/scripts/write_zhihu_failures.py" <Vault路径> <标签>:<progress.json> ...`；生成 `{Vault}/知乎收藏/抓取失败.md` |
-| Cookie 失效需人工登录 | **`Bash`** → `python "${CLAUDE_SKILL_DIR}/scripts/zhihu_relogin.py"`（会打开浏览器窗口） |
+| 获取收藏夹 JSON 列表 | **`Bash`** → `.venv/Scripts/python "${CLAUDE_SKILL_DIR}/scripts/fetch_zhihu_collection.py" <收藏夹URL或ID>`；优先 API，失败降级 Playwright DOM |
+| 获取个人主页点赞/收藏历史 | **`Bash`** → `.venv/Scripts/python "${CLAUDE_SKILL_DIR}/scripts/fetch_zhihu_history.py" <people URL 或 slug> <起始时间ISO> <输出.json> [--until <结束时间ISO>]`；按活动时间保留 `interaction_*` 元数据，支持断点续跑 |
+| 批量抓取正文与图片 | **`Bash`** → `.venv/Scripts/python "${CLAUDE_SKILL_DIR}/scripts/fetch_zhihu_batch.py" <列表.json> [输出目录] [图片目录]`；默认输出目录见「路径约定」 |
+| 写入 Obsidian Vault | **`Bash`** → `.venv/Scripts/python "${CLAUDE_SKILL_DIR}/scripts/write_to_obsidian.py" <文章目录> [Vault路径]`；Vault：命令行优先，否则环境变量 **`OBSIDIAN_VAULT`**；会先找 `<文章目录>/images`，否则兼容同级 **`zhihu_images`** |
+| 写入个人历史到 Obsidian | **`Bash`** → `.venv/Scripts/python "${CLAUDE_SKILL_DIR}/scripts/write_zhihu_history_to_obsidian.py" <文章目录> <Vault路径> [.]`；默认写入 `{Vault}/知乎收藏/{分类}/`，按 URL 去重更新 |
+| 写入失败项清单 | **`Bash`** → `.venv/Scripts/python "${CLAUDE_SKILL_DIR}/scripts/write_zhihu_failures.py" <Vault路径> <标签>:<progress.json> ...`；生成 `{Vault}/知乎收藏/抓取失败.md` |
+| Cookie 失效需人工登录 | **`Bash`** → `.venv/Scripts/python "${CLAUDE_SKILL_DIR}/scripts/zhihu_relogin.py"`（会打开浏览器窗口） |
 | 首次登录辅助（可选验证页） | **`Bash`** → `zhihu_login.py`；可选 **`ZHIHU_VERIFY_URL`** 或首个参数传入完整 http(s) 链接，见「登录与可选页面验证」 |
 | 单篇快速验证 | **`Bash`** → `fetch_zhihu_api.py` / `fetch_zhihu_stealth.py` / `fetch_zhihu_interactive.py` / 汇总 **`fetch_zhihu.py`**（自动多策略），按场景选用 |
 | 读本地已抓取 Markdown、排查 `_progress.json` | **`Read`** / **`Grep`** |
@@ -84,7 +87,7 @@ allowed-tools: Read, Write, Edit, Grep, Glob, Bash, WebFetch
 
 ## 主流程（推荐执行顺序）
 
-1. **安装依赖**：`scripts/requirements.txt` + Chromium。
+1. **环境已就绪**：依赖已在本项目 `.venv/` 中安装，Playwright Chromium 已安装。
 2. **`fetch_zhihu_collection.py`** → 得到收藏夹 **JSON 列表**。
 3. **`fetch_zhihu_batch.py`** → 生成 **`zhihu_articles_{collectionId}/`**（含 **`_progress.json`**、**`images/`**、编号 **`*.md`**）。
 4. （可选）**`write_to_obsidian.py`** → 同步到 **`{Vault}/知乎收藏/{分类}/`**。
@@ -97,19 +100,19 @@ allowed-tools: Read, Write, Edit, Grep, Glob, Bash, WebFetch
 
 ```bash
 # 1. 收集活动列表（起始时间含，结束时间不含）
-python scripts/fetch_zhihu_history.py \
+.venv/Scripts/python scripts/fetch_zhihu_history.py \
   https://www.zhihu.com/people/<slug> \
   2026-01-01T00:00:00+08:00 \
   /path/to/runtime/zhihu_history_2026-01-01_to_2026-04-05.json \
   --until 2026-04-05T00:00:00+08:00
 
 # 2. 抓取正文与图片；失败默认自动重试 3 次
-python scripts/fetch_zhihu_batch.py \
+.venv/Scripts/python scripts/fetch_zhihu_batch.py \
   /path/to/runtime/zhihu_history_2026-01-01_to_2026-04-05.json \
   /path/to/runtime/zhihu_articles_history_2026-01-01_to_2026-04-05
 
 # 3. 写入 Obsidian 的知乎收藏根目录分类文件夹
-python scripts/write_zhihu_history_to_obsidian.py \
+.venv/Scripts/python scripts/write_zhihu_history_to_obsidian.py \
   /path/to/runtime/zhihu_articles_history_2026-01-01_to_2026-04-05 \
   /path/to/ObsidianVault \
   .
@@ -133,7 +136,7 @@ tags: [zhihu, 编程与开发, 赞同了回答]
 ### 批量抓取命令格式
 
 ```bash
-python fetch_zhihu_batch.py <列表文件> [输出目录] [图片目录]
+.venv/Scripts/python fetch_zhihu_batch.py <列表文件> [输出目录] [图片目录]
 ```
 
 | 参数 | 说明 |
@@ -241,7 +244,7 @@ images: 5
 
 **重试模式：**
 ```bash
-python fetch_zhihu_batch.py <列表文件> [输出目录] [图片目录] --retry-failed
+.venv/Scripts/python fetch_zhihu_batch.py <列表文件> [输出目录] [图片目录] --retry-failed
 ```
 此模式会清空 `failed` 列表，只重试之前记录为失败的文章。
 
@@ -265,7 +268,7 @@ python fetch_zhihu_batch.py <列表文件> [输出目录] [图片目录] --retry
 ## Agent 自用工作流检查清单
 
 ```
-□ 已确认 scripts 依赖与 playwright chromium 可用；必要时提示用户设置 OPENCLAW_WORKSPACE
+□ 已确认 scripts 依赖已在项目 `.venv/` 中安装，playwright chromium 已安装
 □ 收藏夹任务：已运行 fetch_zhihu_collection.py 并得到合法 JSON，再执行 fetch_zhihu_batch.py
 □ 批量输出路径：知悉默认 {workspace}/zhihu_articles_* 与 images/ 子目录；第三个参数仅在自定义图片目录时需要
 □ Obsidian：`write_to_obsidian.py` 的文章目录含 *.md 与 images/；Vault 优先命令行路径或 **`OBSIDIAN_VAULT`**

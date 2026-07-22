@@ -1,6 +1,30 @@
 {
   "version": 1,
   "skills": {
+    "sufe-base": {
+      "source": "ChengJiale150/sufe-cli",
+      "sourceType": "github",
+      "skillPath": ".claude/skills/sufe-base/SKILL.md",
+      "computedHash": "initial"
+    },
+    "sufe-canvas": {
+      "source": "ChengJiale150/sufe-cli",
+      "sourceType": "github",
+      "skillPath": ".claude/skills/sufe-canvas/SKILL.md",
+      "computedHash": "initial"
+    },
+    "sufe-lclibrary": {
+      "source": "ChengJiale150/sufe-cli",
+      "sourceType": "github",
+      "skillPath": ".claude/skills/sufe-lclibrary/SKILL.md",
+      "computedHash": "initial"
+    },
+    "sufe-score": {
+      "source": "ChengJiale150/sufe-cli",
+      "sourceType": "github",
+      "skillPath": ".claude/skills/sufe-score/SKILL.md",
+      "computedHash": "initial"
+    },
     "rednote-skill": {
       "source": "WJJ1577/RedNote-Skill",
       "sourceType": "github",

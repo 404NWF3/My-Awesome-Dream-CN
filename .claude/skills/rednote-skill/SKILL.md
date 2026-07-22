@@ -1,9 +1,12 @@
 ---
 name: rednote
 description: 小红书数据采集、运营分析、舆情监控
+env: "uv (.venv)"
 ---
 
 # RedNote Skill
+
+> **项目环境**：本项目使用仓库级 uv 虚拟环境（`.venv/`）。运行 `rednote` 命令请使用 `uv run rednote` 或 `.venv/Scripts/rednote`。
 
 ## 1. 触发条件
 
@@ -18,16 +21,16 @@ description: 小红书数据采集、运营分析、舆情监控
 ### 检查安装
 
 ```bash
-cd <project_dir> && PYTHONPATH=. python3 -m rednote --help
+uv run rednote --help
 ```
 
 ### 检查登录状态
 
 ```bash
-PYTHONPATH=. python3 -m rednote login status
+uv run rednote login status
 ```
 
-- 如果显示 "未登录" 或 "已过期" → 执行 `PYTHONPATH=. python3 -m rednote login`
+- 如果显示 "未登录" 或 "已过期" → 执行 `uv run rednote login`
 - 如果显示 "登录状态有效" → 继续
 
 ## 3. 可用命令
@@ -52,9 +55,8 @@ PYTHONPATH=. python3 -m rednote login status
 **触发词**：搜索/找/看看 + 关键词/话题
 
 ```bash
-cd <project_dir>
-PYTHONPATH=. python3 -m rednote login status
-PYTHONPATH=. python3 -m rednote scrape search -k "<关键词>" -n 20 -s general
+uv run rednote login status
+uv run rednote scrape search -k "<关键词>" -n 20 -s general
 ```
 
 ### 场景2：查看笔记详情
@@ -63,7 +65,7 @@ PYTHONPATH=. python3 -m rednote scrape search -k "<关键词>" -n 20 -s general
 
 前置：从搜索结果获取 note_id 和 xsec_token
 ```bash
-PYTHONPATH=. python3 -m rednote scrape note <note_id> --xsec <xsec_token>
+uv run rednote scrape note <note_id> --xsec <xsec_token>
 ```
 
 ### 场景3：博主分析
@@ -71,10 +73,10 @@ PYTHONPATH=. python3 -m rednote scrape note <note_id> --xsec <xsec_token>
 **触发词**：分析/看看 + 博主/用户 + ID
 
 ```bash
-PYTHONPATH=. python3 -m rednote login status
-PYTHONPATH=. python3 -m rednote scrape user <user_id>
-PYTHONPATH=. python3 -m rednote scrape user-notes <user_id> -n 50
-PYTHONPATH=. python3 -m rednote report daily -u <user_id>
+uv run rednote login status
+uv run rednote scrape user <user_id>
+uv run rednote scrape user-notes <user_id> -n 50
+uv run rednote report daily -u <user_id>
 ```
 
 ### 场景4：查看评论
@@ -82,7 +84,7 @@ PYTHONPATH=. python3 -m rednote report daily -u <user_id>
 **触发词**：评论/看看评论
 
 ```bash
-PYTHONPATH=. python3 -m rednote scrape comments <note_id> --xsec <xsec_token>
+uv run rednote scrape comments <note_id> --xsec <xsec_token>
 ```
 
 ### 场景5：品类浏览
@@ -90,14 +92,14 @@ PYTHONPATH=. python3 -m rednote scrape comments <note_id> --xsec <xsec_token>
 品类映射：fashion(穿搭), food(美食), cosmetics(彩妆), travel(旅行), fitness(健身), gaming(游戏), career(职场), love(情感), household(家居), movie(影视)
 
 ```bash
-PYTHONPATH=. python3 -m rednote scrape homefeed -c <品类> -n 25
+uv run rednote scrape homefeed -c <品类> -n 25
 ```
 
 ## 5. 常见问题
 
 ### Cookie 过期
 ```bash
-PYTHONPATH=. python3 -m rednote login
+uv run rednote login
 # → 终端显示二维码 → 小红书 App 扫码 → 登录成功
 ```
 
