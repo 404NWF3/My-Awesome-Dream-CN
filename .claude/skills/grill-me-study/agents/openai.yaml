@@ -1,0 +1,4 @@
+interface:
+  display_name: "保研方向深挖"
+  short_description: "逐层厘清保研动机、竞争力、目标院校层级，并生成可执行方向卡片"
+  default_prompt: "使用 $grill-me-study 逐层厘清我的保研方向并生成方向卡片。"
