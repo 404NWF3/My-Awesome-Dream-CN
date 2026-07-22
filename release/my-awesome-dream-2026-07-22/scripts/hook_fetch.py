@@ -11,18 +11,16 @@
 真实调用能力边界（grilled 后核实）：
 - wechat-article-search：可从 config.wechat.keywords 直接跑（Node search_wechat.js）.
 - sufe-cli：可跑 `sufe score list`，但需用户先 `sufe auth`（首次）.
-- zhihu-fetch / rednote-skill：需输入参数（收藏夹 URL/ID / 用户 ID），config 未提供，
-  本 hook 在缺入参时跳过；用户在聊天中提供后再由 Claude 驱动抓取、产物落 .raw/.
-- 目标院校官网：用 Playwright（Claude Code MCP 插件），不能由本 bash 脚本直接调；
-  本 hook 只在到频率时打一条"该抓"提示，由 Claude 在被指向目标时用 Playwright 实抓.
+- zhihu-fetch / rednote-skill：读取 config 中收藏夹 URL / 用户 ID；缺入参时跳过并提示.
+- 目标院校官网：由 scripts/fetch_official_page.py 使用 Playwright 库真实抓取.
+- `--full`：忽略时间戳与频率，供首次或手动全量采集使用.
 """
 from __future__ import annotations
 
+import argparse
 import datetime
 import hashlib
-import json
 import os
-import shlex
 import subprocess
 import sys
 from pathlib import Path
@@ -40,15 +38,7 @@ WECHAT_JS = SKILLS / "wechat-article-search" / "scripts" / "search_wechat.js"
 ZHIHU_COLLECTION = SKILLS / "zhihu-fetch" / "scripts" / "fetch_zhihu_collection.py"
 ZHIHU_BATCH = SKILLS / "zhihu-fetch" / "scripts" / "fetch_zhihu_batch.py"
 OFFICIAL_FETCH = VAULT / "scripts" / "fetch_official_page.py"
-VENV_PY = VAULT / ".venv" / "Scripts" / "python.exe"
-
-SOURCES = {
-    "official": "官网",
-    "wechat": "公众号",
-    "community": "社区",
-    "sufe": "成绩",
-}
-
+PYTHON = Path(sys.executable)
 
 def now_iso() -> str:
     return datetime.datetime.now().isoformat(timespec="seconds")
@@ -111,12 +101,10 @@ def fetch_official(cfg: dict, last_run: dict) -> list[str]:
     freq_h = pages[0].get("frequency_days", 1) * 24
     if hours_since(last_run.get("official")) < freq_h:
         return []
-    if not VENV_PY.exists():
-        return [f"[official] venv 缺失：{VENV_PY}（先 `uv sync`）"]
     msgs = []
     for p in pages:
         rc, log = run([
-            str(VENV_PY), str(OFFICIAL_FETCH),
+            str(PYTHON), str(OFFICIAL_FETCH),
             "--url", p["url"],
             "--school", str(p.get("school", "")),
             "--college", str(p.get("college", "")),
@@ -157,13 +145,11 @@ def fetch_community(cfg: dict, last_run: dict) -> list[str]:
     if hours_since(last_run.get("community")) < c.get("frequency_hours", 1):
         return []
     msgs = []
-    if not VENV_PY.exists():
-        return [f"[community] venv 缺失：{VENV_PY}（先 `uv sync`）"]
 
     # zhihu
     zurl = (c.get("zhihu_collection_url") or "").strip()
     if zurl and ZHIHU_COLLECTION.exists():
-        list_rc, list_log = run([str(VENV_PY), str(ZHIHU_COLLECTION), zurl, "50"], cwd=VAULT, timeout=300)
+        list_rc, list_log = run([str(PYTHON), str(ZHIHU_COLLECTION), zurl, "50"], cwd=VAULT, timeout=300)
         if list_rc == 0:
             # collection json 输出到 OPENCLAW_WORKSPACE（默认 ~/.openclaw/workspace/）；
             # 找出刚生成的列表文件，再跑 batch 抓正文到 .raw/community-info/zhihu/
@@ -172,7 +158,7 @@ def fetch_community(cfg: dict, last_run: dict) -> list[str]:
             cands = sorted(ws.glob("zhihu_collection_*.json"), key=lambda p: p.stat().st_mtime, reverse=True)
             if cands:
                 out_dir = ensure_raw_dir("community-info/zhihu")
-                b_rc, b_log = run([str(VENV_PY), str(ZHIHU_BATCH), str(cands[0]), str(out_dir)], cwd=VAULT, timeout=600)
+                b_rc, b_log = run([str(PYTHON), str(ZHIHU_BATCH), str(cands[0]), str(out_dir)], cwd=VAULT, timeout=600)
                 msgs.append(f"[zhihu] collection ✓ batch rc={b_rc} → .raw/community-info/zhihu/")
             else:
                 msgs.append("[zhihu] collection 列表已抓但未找到输出 json")
@@ -230,12 +216,25 @@ FETCHERS = {
 }
 
 
-def main() -> int:
+def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
+    parser = argparse.ArgumentParser(description="按 config.yaml 抓取保研信息源")
+    parser.add_argument(
+        "--full",
+        action="store_true",
+        help="忽略 .last_run.yaml 的频率限制，立即尝试所有已启用来源（首次全量采集使用）",
+    )
+    return parser.parse_args(argv)
+
+
+def main(argv: list[str] | None = None) -> int:
+    args = parse_args(argv)
     cfg = load_config()
     if not cfg:
         print("[hook_fetch] 无 config.yaml，跳过（用户未运行 /init？）")
         return 0
-    last_run = load_last_run()
+    last_run = {} if args.full else load_last_run()
+    if args.full:
+        print("[hook_fetch] 首次/手动全量模式：忽略频率，尝试所有已启用来源。")
     all_msgs: list[str] = []
     touched: dict[str, str] = {}
     for key, fn in FETCHERS.items():
@@ -247,7 +246,10 @@ def main() -> int:
         save_last_run({**last_run, **touched})
         print("[hook_fetch] 本轮触发:\n" + "\n".join(all_msgs))
     else:
-        print("[hook_fetch] 本轮无来源到频率，跳过。")
+        if args.full:
+            print("[hook_fetch] 未发现已启用且入参完整的来源，跳过抓取。")
+        else:
+            print("[hook_fetch] 本轮无来源到频率，跳过。")
     return 0
 
 

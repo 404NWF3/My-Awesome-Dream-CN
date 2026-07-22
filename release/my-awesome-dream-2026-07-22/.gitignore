@@ -7,6 +7,7 @@
 
 # 抓取时间戳与运行产物（见 scripts/hook_fetch.py）
 .last_run.yaml
+.full_collect_state.json
 
 # Python 运行时
 .venv/

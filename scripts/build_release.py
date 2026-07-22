@@ -4,7 +4,8 @@
 
 包含：
   - 工具轨：.claude/skills（剔除 _dev/）、_templates/、CLAUDE.md、README.md、config.yaml、
-            scripts/、Project Develop Plan.md、.obsidian/ 配置（剔除 workspace.json / workspace-mobile.json）
+            Python/uv 依赖清单、README 图片、scripts/、Project Develop Plan.md、
+            .obsidian/ 配置（剔除 workspace.json / workspace-mobile.json）
   - 空骨架：.raw/（README + .gitkeep）、.archive/（README + .gitkeep）、
             wiki/ 目录结构 + 种子概念页 + meta 公共资产 + 各 README/MOC
   - 公共资产：wiki/meta/preset-prompts.md、wiki/meta/dashboard.md、wiki/entities/README.md 等
@@ -40,6 +41,11 @@ TOP_FILES = [
     "README.md",
     "Project Develop Plan.md",
     "config.yaml",
+    "pyproject.toml",
+    "uv.lock",
+    "skills-lock.json",
+    "image.png",
+    "image-1.png",
     ".gitignore",
 ]
 
@@ -70,7 +76,7 @@ EXCLUDE_PARTS = {
     "_dev", ".trash",
 }
 EXCLUDE_FILES = {
-    "workspace.json", "workspace-mobile.json", ".last_run.yaml",
+    "workspace.json", "workspace-mobile.json", ".last_run.yaml", ".full_collect_state.json",
     ".obsidian-git-data", ".DS_Store",
 }
 

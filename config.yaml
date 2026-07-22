@@ -23,6 +23,8 @@ wechat:
   frequency_hours: 1
 
 # 社区技能关键词（小时级；zhihu / rednote / wechat 三 skill）
+# 注意：首次使用前需分别登录 —— rednote: `uv run rednote auth`；知乎：浏览器登录后保存 Cookie；
+# sufe（仅上财）: `sufe auth`. 未登录则对应来源的自动抓取无法生效。
 community:
   knowledge_keywords: []        # 如 ["保研","推免","夏令营"]
   target_keywords: []           # 如 ["上财","复旦经济学院"]

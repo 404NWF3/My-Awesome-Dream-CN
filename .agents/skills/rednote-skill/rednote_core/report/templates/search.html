@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% block title %}搜索: {{ keyword }} — RedNote{% endblock %}
+{% block content %}
+<header>
+    <h1>🔍 搜索: {{ keyword }}</h1>
+    <div class="meta">{{ items|length }} 条结果 · {{ generated_at }}</div>
+</header>
+<div class="container">
+    {% for item in items %}
+    <div class="card">
+        <h2>{{ item.title }}</h2>
+        <p>{{ item.desc[:200] }}</p>
+        <div class="stats">
+            <div class="stat">
+                <div class="stat-value">{{ item.interact_info.liked_count if item.interact_info else 0 }}</div>
+                <div class="stat-label">❤️ 点赞</div>
+            </div>
+            <div class="stat">
+                <div class="stat-value">{{ item.interact_info.collected_count if item.interact_info else 0 }}</div>
+                <div class="stat-label">⭐ 收藏</div>
+            </div>
+            <div class="stat">
+                <div class="stat-value">{{ item.interact_info.comment_count if item.interact_info else 0 }}</div>
+                <div class="stat-label">💬 评论</div>
+            </div>
+        </div>
+        <p style="margin-top: 8px; font-size: 13px; color: #999;">
+            作者: {{ item.user.nickname if item.user else 'N/A' }} ·
+            IP: {{ item.ip_location }} ·
+            ID: {{ item.note_id }}
+        </p>
+        {% if item.tag_list %}
+        <div style="margin-top: 8px;">
+            {% for tag in item.tag_list %}
+            <span class="tag">{{ tag }}</span>
+            {% endfor %}
+        </div>
+        {% endif %}
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}

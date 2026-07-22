@@ -50,6 +50,7 @@ vault/
 ## Operations
 
 - Ingest：把来源文件放进 `.raw/`，说 "ingest [文件名]"（触发 `scripts/convert_raw_to_sources.py` 把 `.raw` pending 转 `wiki/sources/` md，再走官方 wiki-ingest agent 提炼 concept/entity）
+- **完整全量采集**：用户运行 `/full-collect` 或说“根据我的 config.yaml，帮我做一次全量信息采集”——按 `.claude/skills/full-collect/SKILL.md` 跑完所有已启用来源、`.raw → source → wiki-ingest` 与 `full_collect.py --finish`。**不得停在只给命令或只抓 `.raw/`**；必须汇报各来源新增/更新量、source/entity/concept/profile/question 沉淀量、失败/跳过项、dashboard 第 1–4 区变化，并提示“在 Obsidian 中打开 `wiki/meta/dashboard.md` 查看结果”。`/init` 完成配置后默认直接进入此流程，除非用户明确跳过。
 - Query：直接提问；Claude 先读 hot.md → index.md → 子索引 → 具体页面
 - Lint：说 "lint the wiki" 做健康检查（孤儿页、死链、过期声明 + 自补时效三层标签 current/historical/stale-suspect）
 - Archive：把冷来源移到 `.archive/` 保持 `.raw/` 干净

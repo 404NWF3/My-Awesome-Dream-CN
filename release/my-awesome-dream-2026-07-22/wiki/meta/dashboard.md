@@ -11,6 +11,9 @@ status: developing
 
 > 单个 markdown 面板 + 多段 dataview。Claudian 插件不嵌入。字段名须与各 frontmatter 一字不差对齐（见 CLAUDE.md）。
 
+> [!tip] 把这里当作默认结果入口
+> 每次完成 `/full-collect`、`ingest` 或 `/grill-me-study` 后，都回到本页查看变化。想立即刷新全部已配置来源，运行 `/full-collect`；它会在结束时告诉你本页第 1–4 区各新增或更新了多少条。
+
 ## 1 最新高时效信息（当季·官方）
 
 ```dataview

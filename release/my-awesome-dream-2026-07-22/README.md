@@ -13,6 +13,8 @@
 - [系统架构](#系统架构)
 - [系统优势](#系统优势)
 - [使用方式](#使用方式)
+- [情报抓取](#情报抓取)
+- [10 个应用案例](#10-个应用案例)
 - [第三方技术与致谢](#第三方技术与致谢)
 - [项目状态](#项目状态)
 
@@ -22,31 +24,7 @@
 
 三层单向数据流，任何 skill / 脚本都**不准越层直写**——这是整个系统的地基。
 
-```
-┌─────────────────────────────────────────────────────────────┐
-│  来源层  .raw/  （原始字节，永不修改，按内容指纹去重）              │
-│  ├─ myself/            简历 PDF / sufe-cli 成绩                │
-│  ├─ my-dream-school/   目标院校官网 HTML（天级）                 │
-│  └─ community-info/    zhihu / rednote / wechat 原文（小时级）  │
-│         ▲                                                    │
-│         │ Stop hook 每次会话结束按频率 + 时间戳触发抓取             │
-└─────────┼────────────────────────────────────────────────────┘
-          │  scripts/convert_raw_to_sources.py  （第一跳）
-          ▼
-┌─────────────────────────────────────────────────────────────┐
-│  摘要层  wiki/sources/  （初步转 md，每来源一页，带 frontmatter）   │
-└─────────┬───────────────────────────────────────────────────┘
-          │  claude-obsidian wiki-ingest agent  （第二跳）
-          ▼
-┌─────────────────────────────────────────────────────────────┐
-│  精华层  wiki/                                              │
-│  ├─ entities/    院校 / 教授 / 用户本人     （官方实体层）      │
-│  ├─ concepts/    保研术语 + 推免规则          （官方概念层）      │
-│  ├─ targets/ profile/ requirements/          （薄 MOC 索引层）  │
-│  ├─ comparisons/ strategy/ questions/       （独立类型页）      │
-│  └─ meta/dashboard.md                       （四区展示面板）    │
-└─────────────────────────────────────────────────────────────┘
-```
+![alt text](image-1.png)
 
 ### 关键设计
 
@@ -93,6 +71,9 @@
 
 ## 使用方式
 
+> [!IMPORTANT]
+> 第一次只需记住 `/init`：配置完成后 Claude Code 会主动继续首次全量采集，不需要你再记一串命令。以后想立即完成一轮“采集 + 沉淀 + 汇报”，运行 `/full-collect`。每轮结束后，请打开 [wiki/meta/dashboard.md](wiki/meta/dashboard.md) 查看保研驾驶舱。
+
 ### 🚀 首次使用
 
 Clone 后第一步：
@@ -104,10 +85,13 @@ Clone 后第一步：
 它会引导你：
 
 1. 检查环境依赖（Python / uv / Node + cheerio；是否上财学生 → 决定是否装 sufe-cli）
-2. 填写 `config.yaml`：你本人信息 + **所有需要监视的网站**（目标院校官网可配多个、公众号、社区关键词）
-3. 生成空骨架（`.raw/` + `wiki/` 种子概念页 + `preset-prompts.md` 占位）
-4. 提示你把第一份简历放进 `.raw/myself/resume/`，触发首次 ingest（建立你的个人画像 entity）
-5. 引导运行下一步——保研方向深挖
+2. 提醒登录社区来源账号（小红书 `uv run rednote auth`、知乎浏览器登录保存 Cookie、sufe `sufe auth`）——未登录则对应抓取不生效
+3. 填写 `config.yaml`：你本人信息 + **所有需要监视的网站**（目标院校官网可配多个、公众号、社区关键词、zhihu 收藏夹 URL、rednote UID）
+4. 生成空骨架（`.raw/` + `wiki/` 种子概念页 + `preset-prompts.md` 占位）
+5. 提示你把第一份简历放进 `.raw/myself/resume/`，触发首次 ingest（建立你的个人画像 entity）
+6. **自动开始首次全量信息采集**——除非你明确选择暂不采集，`/init` 会直接接着执行 `/full-collect`：逐一跑官网/公众号/知乎/小红书/成绩（按 config 启用），完成 source 转换与 wiki-ingest
+7. 收到统一汇报：每个来源采集了多少、沉淀了多少 entity/concept、哪些来源失败或跳过、dashboard 哪些区有变化
+8. 引导运行下一步 `/grill-me-study`，并请你**现在就在 Obsidian 中打开 [wiki/meta/dashboard.md](wiki/meta/dashboard.md)** 查看保研驾驶舱
 
 ### 日常使用
 
@@ -115,11 +99,108 @@ Clone 后第一步：
 |-----------|--------|
 | 把一份原始材料纳入知识库 | 把文件放进 `.raw/`，说 `ingest <文件名>` |
 | 直接问保研问题 | 直接问，Claude 先读 `hot → index → 子索引 → 具体页` |
+| **完整采集 + 沉淀 + 汇报** | `/full-collect`（也可说“根据我的 config.yaml，帮我做一次全量信息采集”） |
+| 不等 hook、立即抓取情报 | "帮我抓取 XXX"（抓官网 / 搜知乎 / 更新绩点 / 搜公众号） |
 | 深挖保研方向 | `/grill-me-study` |
 | 健康检查（孤儿页/死链/时效） | `lint the wiki` |
-| 查看展示面板 | 在 Obsidian 打开 `wiki/meta/dashboard.md` |
+| **查看最终结果** | 在 Obsidian 打开 [wiki/meta/dashboard.md](wiki/meta/dashboard.md) |
 
-抓取是自动的：你和 Claude 每次会话结束，Stop hook 按频率决定是否抓官网/公众号/社区，新内容自动进库、自动处理、自动进面板。
+### 情报抓取
+
+增量抓取是**自动**的。每次你和 Claude 聊完、会话结束时，Stop hook 自动触发 `scripts/hook_fetch.py`：读取 `config.yaml` 里各来源的频率 + 上一次抓取时间戳，时间到了就把新原始材料抓进 `.raw/`。Stop hook 不会在后台冒充 Claude 完成语义提炼；要立刻跑完 source 转换、wiki-ingest 和结果汇报，请运行 `/full-collect`。
+
+**各来源抓取前提：**
+
+| 来源 | 频率 | 前提条件 |
+|------|------|---------|
+| 目标院校官网 | 天级 | `config.watched_pages` 中填入 URL（Playwright 浏览器自动抓 HTML） |
+| 公众号文章 | 小时级 | `config.wechat.keywords` 中填入关键词 |
+| 知乎收藏夹 | 小时级 | `config.community.zhihu_collection_url` 中填入收藏夹 URL；**需先在浏览器登录知乎并保存 Cookie** |
+| 小红书 | 小时级 | `config.community.rednote_user_id` 中填入用户 ID；**需先运行 `uv run rednote auth` 登录** |
+| 成绩/绩点 | 周级 | 仅上财学生；`config.is_sufe=true` 且已运行 `sufe auth` |
+
+**手动抓取**：想不等 hook 到时间立刻抓 → 和 Claude 说"帮我抓取 XXX"（例如"帮我抓取目标院校官网""帮我搜知乎收藏夹""更新我的绩点"），Claude 会跑对应 skill 直接拉，产物同样进 `.raw/`。
+
+**首次全量采集**：`/init` 填完配置并 ingest 首份简历后会自动继续；无需记额外命令。若当时选择跳过，或以后想立即刷新全部来源，运行 `/full-collect`。它会强制忽略日常频率，跑所有已启用来源，完成 `.raw → source → entity/concept`，最后汇报“采集了什么 → 沉淀了什么 → dashboard 哪些区变化 → 哪些来源需要补救”。
+
+**数据流向**：`.raw/` 新文件 → `scripts/convert_raw_to_sources.py` 转 `wiki/sources/` md → Claude 的 wiki-ingest agent 提炼进 `wiki/concepts`、`wiki/entities` → 满足 dashboard 过滤条件的条目出现在面板。
+
+每轮完整采集结束后都做同一件事：**在 Obsidian 中打开 [wiki/meta/dashboard.md](wiki/meta/dashboard.md)**。这是整个系统的默认结果入口。
+
+想要停用某个来源的自动抓取 → 将 config 中对应关键词/URL 留空或注掉即可。
+
+### 10 个应用案例
+
+以下 10 个案例覆盖从初始化到精进的全生命周期，按推荐顺序排列。
+
+**1. 初次上手：搭好你的保研驾驶舱**
+
+```bash
+/init
+```
+依次完成：依赖检查 → 登录小红书/知乎/sufe → 填 config.yaml（填入你的院校、目标院校 URL、公众号关键词、知乎收藏夹、小红书 UID）→ 投简历。随后 `/init` 会自动执行首次 `/full-collect`；你会收到采集量、沉淀量、失败来源和 dashboard 更新区的完整汇报。完成后立即在 Obsidian 打开 [wiki/meta/dashboard.md](wiki/meta/dashboard.md)——你的保研驾驶舱已经亮了。
+
+**2. 每周情报更新：你什么都不用做**
+
+每次和 Claude 聊完、会话结束时，Stop hook 自动跑 `scripts/hook_fetch.py`：检查各来源上次抓取时间 + 频率（官网天级、社区小时级、sufe 周级），时间到了就把新证据放进 `.raw/`。想把 pending 证据立即提炼并查看统一汇报时运行 `/full-collect`，然后打开 [dashboard](wiki/meta/dashboard.md)。
+
+**3. 突然想看看目标院校官网有没有新通知**
+
+不等 hook 到时间——直接运行：
+```
+/full-collect
+```
+Claude Code 用 Playwright 打开 config 里所有 `watched_pages` URL，HTML 落地 `.raw/`，转为 source md 并提炼 entity/concept。只有满足 `current + official` 的条目才进入 dashboard 第 1 区，最终汇报会给出真实命中数量。
+
+**4. 搜知乎保研经验帖并沉淀**
+
+确保 config 中 `community.zhihu_collection_url` 已填，对 Claude 说：
+```
+帮我搜知乎收藏夹
+```
+Claude 抓收藏夹中所有文章的正文 + 图片 → 落 `.raw/community-info/zhihu/` → ingest 提炼文章里提到的教授、项目、概念进实体/概念页。社区 source 保留在 `wiki/sources/`，不会被误报为 dashboard 的“官方来源”；你可以据此继续提问，优质问答评分后进入 dashboard 第 4 区。
+
+**5. 简历投进去，建立个人画像**
+
+把简历（PDF/DOCX）拖进 `.raw/myself/resume/` 后说：
+```
+ingest 我的简历
+```
+Claude 把简历转成 source md，提炼你的学校/专业/绩点/科研/竞赛/技能进 `wiki/entities/` 里的用户本人 entity（`entity_type: person` + `tag: user-self`）。之后说：
+```
+帮我更新个人 SWOT
+```
+Claude 根据 entity 数据生成 SWOT 进 dashboard 第 3 区。
+
+**6. 用 grill-me-study 厘清保研方向**
+
+```
+/grill-me-study
+```
+Claude 逐层深挖：你的保研竞争力自评 → 读研动机 → 愿付代价 → 目标学位 → 目标院校层 → 地域 → SWOT → 产出方向卡片。每个关键节点沉淀进 `wiki/questions/`，dashboard 第 4 区只显示你打 4 分以上的回答。
+
+**7. 用预设提示词做定点深挖**
+
+在 Claudian（Obsidian 内的 realclaudian 插件）中问一条 `wiki/meta/preset-prompts.md` 里的预设提示词——例如 `preset/competitiveness-self`（"根据你的各维度逐一盘点保研竞争力"）。Claudian 基于第二大脑回答后，回复自动沉淀进 `wiki/questions/`，frontmatter 带 `prompt_type: preset`、`preset_slug: competitiveness-self`、`score`。给高分的回复会出现在 dashboard 第 4 区。
+
+**8. 自由提问并沉淀高分回答**
+
+在 Claudian 中问任意保研问题——"上财金院和复旦经院哪个更适合我？"。Claudian 结合你的个人画像和已 ingest 的官方/社区信息作答。回复沉淀进 `wiki/questions/`（`prompt_type: freeform`），你打完分后如果 ≥ 4 分会出现在 dashboard 第 4 区。
+
+**9. 定期健康检查**
+
+```
+lint the wiki
+```
+Claude 跑官方 wiki-lint（孤儿页/死链/缺口）+ 自补时效检查（current/historical/stale-suspect）。去年的招生通知不会删——只是标 `historical` 降到历史参考区，时间线参考价值全保留。
+
+**10. 导出 release 给同学用**
+
+项目开发完成后运行：
+```
+python scripts/build_release.py --zip
+```
+生成 `release/my-awesome-dream-YYYY-MM-DD.zip`，包含工具轨 + 空骨架 + 种子概念页 + 12 条预设提示词，**不含任何个人数据**。同学 clone 后走同样的 `/init` → 自动 `/full-collect` → 打开 dashboard → `/grill-me-study` 路径。
 
 ### 目录速览
 
@@ -184,8 +265,7 @@ _templates/           Templater 模板
 
 ## 项目状态
 
-- **当前**：架构与骨架已落地（来源层管线、处理层 MOC、展示层面板、Stop hook 调度、种子概念页、init skill）；`hook_fetch.py` 四个 fetch_* 均接通真实 CLI（wechat/sufe/官网 全自动可达，zhihu/rednote 填 config 入参后自动抓）；rednote 内部已改暴露 `--output-dir`/`REDNOTE_OUTPUT_DIR`；release 打包脚本已通（`scripts/build_release.py`）
-- **待后续阶段**：
-  - 预设提示词清单逐条设计（待跑过一次 grill-me-study）
+- **当前**：全量落地——来源层管线、处理层 MOC、展示层面板、Stop hook 调度、种子概念页（5 篇）、init skill、`hook_fetch.py` 四个 fetch_* 均接通真实 CLI（wechat/sufe/官网 全自动可达，zhihu/rednote 填 config 入参后自动抓）、rednote 内部已改暴露 `--output-dir`/`REDNOTE_OUTPUT_DIR`、release 打包脚本已通（`scripts/build_release.py`）、预设提示词清单 12 条已录入（`wiki/meta/preset-prompts.md`，覆盖 decision tree 全路径）
+- **运行时可迭代**：grill-me-study 深挖实践后可按需调优提示词措辞、decision tree 分支权重、展示面板 dataview 字段过滤条件
 
 设计与 grill 共识完整记录在 [Project Develop Plan.md](Project%20Develop%20Plan.md)。
