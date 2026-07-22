@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+{% block title %}运营日报 — RedNote{% endblock %}
+{% block content %}
+<header>
+    <h1>📊 运营日报</h1>
+    <div class="meta">{{ generated_at }}</div>
+</header>
+<div class="container">
+    <div class="card">
+        <h2>📈 概览</h2>
+        <div class="stats">
+            <div class="stat">
+                <div class="stat-value">{{ total_notes }}</div>
+                <div class="stat-label">笔记数</div>
+            </div>
+            <div class="stat">
+                <div class="stat-value">{{ total_likes }}</div>
+                <div class="stat-label">点赞</div>
+            </div>
+            <div class="stat">
+                <div class="stat-value">{{ total_comments }}</div>
+                <div class="stat-label">评论</div>
+            </div>
+            <div class="stat">
+                <div class="stat-value">{{ total_collects }}</div>
+                <div class="stat-label">收藏</div>
+            </div>
+        </div>
+    </div>
+
+    {% if top_notes %}
+    <div class="card">
+        <h2>🏆 热门笔记 Top 5</h2>
+        <table>
+            <thead>
+                <tr><th>标题</th><th>点赞</th><th>收藏</th><th>评论</th></tr>
+            </thead>
+            <tbody>
+                {% for note in top_notes %}
+                <tr>
+                    <td>{{ note.title[:50] }}</td>
+                    <td>{{ note.interact_info.liked_count if note.interact_info else 0 }}</td>
+                    <td>{{ note.interact_info.collected_count if note.interact_info else 0 }}</td>
+                    <td>{{ note.interact_info.comment_count if note.interact_info else 0 }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
