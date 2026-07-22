@@ -1,5 +1,7 @@
 # My Awesome Dream · 保研决策支持 Harness
 
+![alt text](image.png)
+
 > 把"我应该保研去哪、有没有资格、什么时候该做什么"这些**靠信息差和记忆力才能答好的问题**，变成一个会自己跑、会自己记、会自己深挖你的第二大脑。
 >
 > 一句话：**简历、目标院校官网、公众号、社区信息自动汇入 Obsidian 知识库，Claude 据此给你决策建议，并在 grill-me-study 的 relentless 追问里帮你厘清保研方向。**
