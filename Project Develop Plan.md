@@ -168,20 +168,28 @@ sufe:
 - question 顶层 `prompt`/`prompt_type`/`score`/`asked_at`/`answered_by`
 - 用户本人 entity 衍生页（`wiki/profile/`）带 `优势/劣势/机会/威胁`
 
+#### 种子概念页（已落地 2026-07-22）
+
+5 篇通用保研术语种子概念页已建（`wiki/concepts/`，tag: 保研机制 或 保研规则，不含院校/个人特定信息）：
+
+- [[夏令营]] / [[预推免]] / [[九推]] — 三条拿 offer 通道
+- [[推免资格]] / [[本校推免规则]] — 资格前提
+
+释放时随 release 分发；用户 ingest 自己的院校规则/个人数据后在线补全。
+
 #### 待 grill（后续阶段）
 
 - 预设提示词清单具体条目（留到跑过一次 grill-me-study 后）
-- release 打包机制（三轨隔离已定，打包脚本未定）
-- 三个种子保研术语概念页具体写哪些术语、什么深度
+- 已落地不再待：release 打包脚本（`scripts/build_release.py`）、种子概念页（5 篇）、hook_fetch 真实 CLI 接通
 
 #### Fetch 真实能力边界（落地共识 2026-07-22）
 
-`scripts/hook_fetch.py` 四个 `fetch_*` 已接通真实调用（非 [TODO] 占位），但能力受各 skill 输入约束：
+`scripts/hook_fetch.py` 四个 `fetch_*` 已接通真实调用（非 [TODO] 占位）：
 
-- **wechat-article-search**：可从 `config.wechat.keywords` 直接跑（`node search_wechat.js <kw> -o .raw/community-info/wechat/<slug>.json`）——**唯一全自动可达**。
+- **wechat-article-search**：可从 `config.wechat.keywords` 直接跑（`node search_wechat.js <kw> -o .raw/community-info/wechat/<slug>.json`）——**全自动可达**（已实测）。
 - **sufe-cli**：跑 `uv run sufe score list`，TSV 落 `.raw/myself/scores.tsv`，需用户先 `sufe auth`。
-- **zhihu-fetch / rednote-skill**：需入参（收藏夹 URL/ID、小红书 user_id），config 不提供 → hook 在缺入参时跳过并提示；用户聊天中提供链接/UID 后由 Claude 驱动抓取，产物落 `.raw/community-info/`。rednote 已暴露 `--output-dir`/`REDNOTE_OUTPUT_DIR`（见 `rednote/commands/report_cmd.py:_resolve_output_dir`）。
-- **目标院校官网**：用 Playwright（Claude Code MCP 插件，不能由 bash 脚本直接调）→ hook 到频率时打"该抓"提示，由 Claude 被指向目标 URL 时用 Playwright 实抓，产物落 `.raw/my-dream-school/…`。
+- **zhihu-fetch / rednote-skill**：`config.community.zhihu_collection_url` 和 `config.community.rednote_user_id` 可选槽位——填了则自动真抓（zhihu: `fetch_zhihu_collection.py` → `fetch_zhihu_batch.py` 输出 `.raw/community-info/zhihu/`；rednote: `rednote report daily -u <id> -o .raw/community-info/rednote/`）；留空则跳过 + 提示。rednote 已暴露 `--output-dir`/`REDNOTE_OUTPUT_DIR`（`rednote/commands/report_cmd.py`），fetch_community 已真实调用 `uv run rednote report daily -u <uid> -o <dir>`。
+- **目标院校官网**：`scripts/fetch_official_page.py`（Playwright 库，非 MCP）真实抓取 HTML 落 `.raw/my-dream-school/<school>/<college>/<page_slug>/<fp>.html`；`hook_fetch.py` 的 `fetch_official` 已改为真实调用该脚本（`venv/Scripts/python fetch_official_page.py --url ... --school ...`）。
 
 非真定时（受会话结束时机约束）——用户接受。
 

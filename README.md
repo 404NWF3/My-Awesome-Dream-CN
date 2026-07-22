@@ -4,7 +4,7 @@
 
 > 把"我应该保研去哪、有没有资格、什么时候该做什么"这些**靠信息差和记忆力才能答好的问题**，变成一个会自己跑、会自己记、会自己深挖你的第二大脑。
 >
-> 一句话：**简历、目标院校官网、公众号、社区信息自动汇入 Obsidian 知识库，Claude 据此给你决策建议，并在 grill-me-study 的 relentless 追问里帮你厘清保研方向。**
+> 本项目将 **简历、目标院校官网、公众号、社区信息自动汇入 Obsidian 知识库，Claude 据此给你决策建议，并在 grill-me-study 的 relentless 追问里帮你厘清保研方向。**
 
 ---
 
@@ -184,9 +184,8 @@ _templates/           Templater 模板
 
 ## 项目状态
 
-- **当前**：架构与骨架已落地（来源层管线、处理层 MOC、展示层面板、Stop hook 调度、种子概念页、init skill）；`hook_fetch.py` 的 fetch_* 已接通真实 CLI 调用（wechat 全自动可达，sufe 需先 auth，zhihu/rednote 缺入参由聊天驱动，官网走 Playwright）
+- **当前**：架构与骨架已落地（来源层管线、处理层 MOC、展示层面板、Stop hook 调度、种子概念页、init skill）；`hook_fetch.py` 四个 fetch_* 均接通真实 CLI（wechat/sufe/官网 全自动可达，zhihu/rednote 填 config 入参后自动抓）；rednote 内部已改暴露 `--output-dir`/`REDNOTE_OUTPUT_DIR`；release 打包脚本已通（`scripts/build_release.py`）
 - **待后续阶段**：
   - 预设提示词清单逐条设计（待跑过一次 grill-me-study）
-  - release 打包脚本
 
 设计与 grill 共识完整记录在 [Project Develop Plan.md](Project%20Develop%20Plan.md)。
